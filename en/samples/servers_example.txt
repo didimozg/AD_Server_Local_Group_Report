@@ -1,0 +1,4 @@
+# Example server list
+server01.contoso.local
+server02.contoso.local
+server03

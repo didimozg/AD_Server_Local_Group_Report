@@ -1,0 +1,4 @@
+ConnectionName,DnsHostName,OperatingSystem
+server01,server01.contoso.local,Windows Server 2019
+server02,server02.contoso.local,Windows Server 2022
+server03,server03.contoso.local,Windows Server 2016

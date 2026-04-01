@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        edition:
+          - en
+          - ru
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PowerShell
+        uses: actions/setup-powershell@v2
+
+      - name: Parse PowerShell files
+        shell: pwsh
+        run: |
+          $editionRoot = Join-Path -Path $PWD -ChildPath '${{ matrix.edition }}'
+          $files = Get-ChildItem -Path $editionRoot -Recurse -Include *.ps1,*.psm1,*.psd1 -File
+          foreach ($file in $files) {
+            $null = $null
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $messages = $errors | ForEach-Object { "{0}:{1} {2}" -f $file.FullName, $_.Extent.StartLineNumber, $_.Message }
+              throw ($messages -join [Environment]::NewLine)
+            }
+          }
+
+      - name: Import module manifests
+        shell: pwsh
+        run: |
+          Import-Module (Join-Path -Path $PWD -ChildPath '${{ matrix.edition }}\AD_Server_Local_Group_Report.psd1') -Force
+
+      - name: Wrapper smoke check
+        shell: pwsh
+        run: |
+          & (Join-Path -Path $PWD -ChildPath '${{ matrix.edition }}\Start-ServerLocalGroupReport.ps1') -WhatIf

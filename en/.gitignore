@@ -1,0 +1,4 @@
+output/
+output_smoke_empty/
+artifacts/
+*.tmp
